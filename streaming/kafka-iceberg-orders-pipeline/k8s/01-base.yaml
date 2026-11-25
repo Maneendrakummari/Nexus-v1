@@ -1,0 +1,50 @@
+# Namespace, shared storage for the Iceberg warehouse + checkpoints, and the permissions Spark needs.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: orders
+---
+# Holds /data/iceberg/warehouse and /data/iceberg/checkpoints.
+# ReadWriteOnce works on a single-node cluster (Docker Desktop, minikube, kind).
+# On a multi-node cluster use a ReadWriteMany storage class, or point WAREHOUSE at S3/MinIO instead.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: iceberg-data
+  namespace: orders
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spark
+  namespace: orders
+---
+# Spark's driver creates the executor pods, so it needs these rights.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: spark-role
+  namespace: orders
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "configmaps", "persistentvolumeclaims"]
+    verbs: ["create", "get", "list", "watch", "update", "patch", "delete", "deletecollection"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: spark-role-binding
+  namespace: orders
+subjects:
+  - kind: ServiceAccount
+    name: spark
+    namespace: orders
+roleRef:
+  kind: Role
+  name: spark-role
+  apiGroup: rbac.authorization.k8s.io

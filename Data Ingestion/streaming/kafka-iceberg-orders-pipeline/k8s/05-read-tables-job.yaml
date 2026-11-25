@@ -1,0 +1,30 @@
+# Prints bronze / silver / quarantine / orders / duplicate_audit, schema and snapshots (read-only).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: read-order-tables
+  namespace: orders
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: read
+          image: orders-pipeline:1.0
+          imagePullPolicy: IfNotPresent
+          command: ["/opt/spark/bin/spark-submit"]
+          args:
+            - --master
+            - local[2]
+            - --class
+            - com.demo.ReadOrderTables
+            - /opt/jars/orders-pipeline.jar
+          env:
+            - { name: WAREHOUSE, value: "file:///data/iceberg/warehouse" }
+          volumeMounts:
+            - { name: data, mountPath: /data }
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: iceberg-data

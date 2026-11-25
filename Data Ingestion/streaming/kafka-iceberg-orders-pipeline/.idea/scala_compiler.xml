@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ScalaCompilerConfiguration">
+    <option name="separateProdTestSources" value="true" />
+    <profile name="sbt 1" modules="kafka-iceberg-orders-pipeline,kafka-iceberg-orders-pipeline.main,kafka-iceberg-orders-pipeline.test,kafka-iceberg-orders-pipeline_2046,kafka-iceberg-orders-pipeline_2046.main,kafka-iceberg-orders-pipeline_2046.test" />
+  </component>
+</project>

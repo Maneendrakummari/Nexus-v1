@@ -1,0 +1,26 @@
+# Publishes the 5 micro-batch files to Kafka (one file every 20 seconds). Start it AFTER the streaming driver is running.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: order-events-producer
+  namespace: orders
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: producer
+          image: orders-pipeline:1.0
+          imagePullPolicy: IfNotPresent
+          workingDir: /opt/app            # the producer reads data/micro_batches relative to here
+          command: ["/opt/spark/bin/spark-submit"]
+          args:
+            - --master
+            - local[2]
+            - --class
+            - com.demo.OrderEventsProducer
+            - /opt/jars/orders-pipeline.jar
+          env:
+            - { name: KAFKA_BOOTSTRAP, value: "kafka:9092" }
+            - { name: KAFKA_TOPIC, value: "retail" }
